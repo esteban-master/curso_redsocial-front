@@ -48,3 +48,32 @@ const fetchPerfilUsuario = async (_, userId) => {
 export const usePerfil = (userId) => {
   return useQuery(["usuario", userId], fetchPerfilUsuario);
 };
+
+// Seguir y dejar de seguir
+export const seguir = async (id) => {
+  const { token, _id } = JSON.parse(localStorage.getItem("user"));
+  let respuesta = await fetch("http://localhost:5000/usuarios/seguir", {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ userId: _id, followId: id }),
+  });
+  return await respuesta.json();
+};
+
+export const dejarDeSeguir = async (id) => {
+  const { token, _id } = JSON.parse(localStorage.getItem("user"));
+  let respuesta = await fetch("http://localhost:5000/usuarios/dejardeseguir", {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ userId: _id, unfollowId: id }),
+  });
+  return await respuesta.json();
+};

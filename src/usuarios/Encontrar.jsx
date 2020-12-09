@@ -4,7 +4,6 @@ import { useEncontrar } from "./api-user";
 
 export const Encontrar = ({ user }) => {
   const { _id } = user;
-
   const { data: usuarios, isLoading, status } = useEncontrar(_id);
 
   if (isLoading && status === "loading") {
