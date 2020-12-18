@@ -1,41 +1,49 @@
 import { useRouteMatch } from "react-router";
-import { usePerfil } from "./api-user";
-import { useAuth } from "../auth/context/contextAuth";
+import {
+  useDejarDeSeguirUsuario,
+  usePerfil,
+  useSeguirUsuario,
+} from "./api-user";
+import ManejoError from "../ManejoError";
 import { Link } from "react-router-dom";
-import { seguir, dejarDeSeguir } from "./api-user";
-import { useMutation, queryCache } from "react-query";
+import { useQueryCache } from "react-query";
 import FollowGrid from "./FollowGrid";
+import { useAuth } from "../../auth/context/contextAuth";
 
 const Perfil = () => {
+  const cache = useQueryCache();
   const { params } = useRouteMatch();
   const {
-    data: { logged, user },
+    data: { logged, user: userAuth },
   } = useAuth();
-  const { data: usuario, status } = usePerfil(params.userId);
 
-  const [mutateSeguir] = useMutation(seguir, {
-    onSuccess: (datos) => {
-      console.log("onSucces seguir!: datos: ", datos);
-      queryCache.setQueryData(["usuario", usuario._id], datos);
-    },
-  });
-  const [mutateDejarDeSeguir] = useMutation(dejarDeSeguir, {
-    onSuccess: (datos) => {
-      console.log("onSucces dejar de seguir!");
-      queryCache.setQueryData(["usuario", usuario._id], datos);
-    },
-  });
+  const { data: usuario, status, isError, error } = usePerfil(params.userId);
+
+  const [mutateSeguir] = useSeguirUsuario(userAuth?._id, usuario?._id, cache);
+
+  const [mutateDejarDeSeguir] = useDejarDeSeguirUsuario(
+    userAuth?._id,
+    usuario?._id,
+    cache
+  );
 
   async function clickBotonSeguir() {
     await mutateSeguir(usuario._id);
   }
+  async function clickBotonDejarDeSeguir() {
+    await mutateDejarDeSeguir(usuario._id);
+  }
 
   function checkSiguiendo(seguidores) {
-    return seguidores.some((seguidor) => seguidor._id === user._id);
+    return seguidores.some((seguidor) => seguidor._id === userAuth._id);
   }
 
   if (status === "loading") {
     return "Cargando usuario...";
+  }
+
+  if (status === "error" && isError) {
+    return <ManejoError error={error} />;
   }
 
   return (
@@ -45,7 +53,7 @@ const Perfil = () => {
       <p> {usuario.about} </p>
 
       <div>
-        {logged && user._id === usuario._id ? (
+        {logged && userAuth._id === usuario._id ? (
           <>
             <Link to={`/usuario/editar/${usuario._id}`}>Editar</Link>
             <button onClick={() => console.log("Borrar: " + usuario.name)}>
@@ -55,14 +63,7 @@ const Perfil = () => {
         ) : (
           <div>
             {checkSiguiendo(usuario.seguidores) ? (
-              <button
-                onClick={async () => {
-                  await mutateDejarDeSeguir(usuario._id);
-                  console.log("Dejar de seguir");
-                }}
-              >
-                Dejar de seguir
-              </button>
+              <button onClick={clickBotonDejarDeSeguir}>Dejar de seguir</button>
             ) : (
               <button onClick={clickBotonSeguir}>Seguir</button>
             )}

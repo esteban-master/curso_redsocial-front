@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../auth/context/contextAuth";
 import { TiposActions } from "../auth/context/reducer";
-import { Encontrar } from "../usuarios/Encontrar";
+import NewsFeed from "../pages/post/NewsFeed";
+import { Encontrar } from "../pages/usuarios/Encontrar";
 
 const Home = ({ history }) => {
   const {
@@ -45,6 +46,7 @@ const Home = ({ history }) => {
       )}
       {logged && (
         <div>
+          <NewsFeed />
           <Encontrar user={user} />
         </div>
       )}

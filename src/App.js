@@ -3,23 +3,30 @@ import { BrowserRouter } from "react-router-dom";
 import Routes from "./routes/Routes";
 import AuthProvider from "./auth/context/contextAuth";
 import { ReactQueryDevtools } from "react-query-devtools";
-import { ReactQueryConfigProvider } from "react-query";
+import {
+  ReactQueryCacheProvider,
+  ReactQueryConfigProvider,
+  QueryCache,
+} from "react-query";
+
+const queryCache = new QueryCache({
+  defaultConfig: {
+    queries: {
+      // refetchOnWindowFocus: ,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   return (
     <AuthProvider>
-      <ReactQueryDevtools initialIsOpen />
-      <ReactQueryConfigProvider
-        config={{
-          queries: {
-            // staleTime: 60000,
-          },
-        }}
-      >
+      <ReactQueryCacheProvider queryCache={queryCache}>
+        <ReactQueryDevtools initialIsOpen />
         <BrowserRouter>
           <Routes />
         </BrowserRouter>
-      </ReactQueryConfigProvider>
+      </ReactQueryCacheProvider>
     </AuthProvider>
   );
 }

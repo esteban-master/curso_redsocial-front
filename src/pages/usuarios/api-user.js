@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery, useMutation } from "react-query";
 
 // Encontrar personas
 const fetchEncontrarPersonas = async (_, userId) => {
@@ -14,6 +14,15 @@ const fetchEncontrarPersonas = async (_, userId) => {
       },
     }
   );
+
+  if (res.status === 401 || res.statusText === "Unauthorized") {
+    throw Error(
+      JSON.stringify({
+        status: 401,
+        mensaje: "jajojoojdf ",
+      })
+    );
+  }
   return res.json();
 };
 
@@ -42,6 +51,15 @@ const fetchPerfilUsuario = async (_, userId) => {
       Authorization: "Bearer " + token,
     },
   });
+
+  if (res.status === 401 || res.statusText === "Unauthorized") {
+    throw Error(
+      JSON.stringify({
+        status: 401,
+        mensaje: "jajojoojdf ",
+      })
+    );
+  }
   return res.json();
 };
 
@@ -64,6 +82,28 @@ export const seguir = async (id) => {
   return await respuesta.json();
 };
 
+export const useSeguirUsuario = (usuarioAuthId, usuarioId, cache) => {
+  return useMutation(seguir, {
+    onSuccess: (datos) => {
+      cache.setQueryData(["usuario", usuarioId], datos);
+      cache.setQueryData(["encontrar", usuarioAuthId], (encontrarOld) => {
+        const index = encontrarOld.findIndex(
+          (person) => person._id === usuarioId
+        );
+        encontrarOld.splice(index, 1);
+        return encontrarOld;
+      });
+      if (cache.getQueryData(["usuario", usuarioAuthId])) {
+        cache.setQueryData(["usuario", usuarioAuthId], (userDataOld) => {
+          const { siguiendo } = userDataOld;
+          siguiendo.push(datos);
+          return userDataOld;
+        });
+      }
+    },
+  });
+};
+
 export const dejarDeSeguir = async (id) => {
   const { token, _id } = JSON.parse(localStorage.getItem("user"));
   let respuesta = await fetch("http://localhost:5000/usuarios/dejardeseguir", {
@@ -76,4 +116,26 @@ export const dejarDeSeguir = async (id) => {
     body: JSON.stringify({ userId: _id, unfollowId: id }),
   });
   return await respuesta.json();
+};
+
+export const useDejarDeSeguirUsuario = (usuarioAuthId, usuarioId, cache) => {
+  return useMutation(dejarDeSeguir, {
+    onSuccess: (datos) => {
+      cache.setQueryData(["usuario", usuarioId], datos);
+      cache.setQueryData(["encontrar", usuarioAuthId], (old) => [
+        ...old,
+        datos,
+      ]);
+      if (cache.getQueryData(["usuario", usuarioAuthId])) {
+        cache.setQueryData(["usuario", usuarioAuthId], (userDataOld) => {
+          const { siguiendo } = userDataOld;
+          const index = siguiendo.findIndex(
+            (person) => person._id === usuarioId
+          );
+          siguiendo.splice(index, 1);
+          return userDataOld;
+        });
+      }
+    },
+  });
 };

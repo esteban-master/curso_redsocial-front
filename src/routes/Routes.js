@@ -2,8 +2,8 @@ import { Route, Switch } from "react-router-dom";
 import { Signin } from "../auth/Signin";
 import Signup from "../auth/Signup";
 import Home from "../core/Home";
-import Perfil from "../usuarios/Perfil";
-import Usuarios from "../usuarios/Usuarios";
+import Usuarios from "../pages/usuarios/Usuarios";
+import Perfil from "../pages/usuarios/Perfil";
 import Menu from "./Menu";
 import PrivateRoute from "./PrivateRoute";
 
